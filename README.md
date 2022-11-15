@@ -1,4 +1,4 @@
-# terraform-provider-pingdom #
+# terraform-provider-pingdom
 
 This project is a [terraform](http://www.terraform.io/) provider for [pingdom](https://www.pingdom.com/).
 
@@ -6,19 +6,21 @@ This currently only supports working with basic HTTP and ping checks.
 
 This supports Pingdom API v3.1: [API reference docs](https://docs.pingdom.com/api/)
 
-## Requirements ##
-* Terraform 0.12.x
-* Go 1.14 (to build the provider plugin)
+## Requirements
 
-## Usage ##
+- Terraform 1.x.x
+- Go 1.19 (to build the provider plugin)
+
+## Usage
 
 **Use provider**
+
 ```hcl
 terraform {
   required_providers {
     pingdom = {
-      source = "russellcardullo/pingdom"
-      version = "1.1.3"
+      source = "jpetrucciani/pingdom"
+      version = "1.2.0"
     }
   }
 }
@@ -31,6 +33,7 @@ provider "pingdom" {
 ```
 
 **Basic Check**
+
 ```hcl
 resource "pingdom_check" "example" {
     type = "http"
@@ -67,6 +70,7 @@ resource "pingdom_check" "ping_example" {
 ```
 
 Apply with:
+
 ```sh
  terraform apply \
     -var 'pingdom_api_token=YOUR_API_TOKEN'
@@ -155,119 +159,147 @@ resource "pingdom_contact" "second_contact" {
 }
 ```
 
-## Resources ##
+**Maintenance Windows**
 
-### Pingdom Check ###
+```hcl
+resource "pingdom_maintenance_window" "maintenance_window_upgrade" {
+   description = "Test maintenance window"
+   from        = 1610512252
+   to          = 1610513452
+   uptimeids  = [ "${pingdom_check.website.id}" ]
+   tmsids     = [ ]
+# }
+```
 
-#### Common Attributes ####
+## Resources
+
+### Pingdom Check
+
+#### Common Attributes
 
 The following common attributes for all check types can be set:
 
-  * **name** - (Required) The name of the check
+- **name** - (Required) The name of the check
 
-  * **host** - (Required) The hostname to check.  Should be in the format `example.com`.
+- **host** - (Required) The hostname to check. Should be in the format `example.com`.
 
-  * **resolution** - (Required) The time in minutes between each check.  Allowed values: (1,5,15,30,60).
+- **resolution** - (Required) The time in minutes between each check. Allowed values: (1,5,15,30,60).
 
-  * **type** - (Required) The check type.  Allowed values: (http, ping).
+- **type** - (Required) The check type. Allowed values: (http, ping).
 
-  * **paused** - Whether the check is active or not (defaults to `false`, if not provided). Allowed values (bool): `true`, `false`
+- **paused** - Whether the check is active or not (defaults to `false`, if not provided). Allowed values (bool): `true`, `false`
 
-  * **responsetime_threshold** = How long (int: milliseconds) pingdom should wait before marking a probe as failed (defaults to 30000 ms)
+- **responsetime_threshold** = How long (int: milliseconds) pingdom should wait before marking a probe as failed (defaults to 30000 ms)
 
-  * **sendnotificationwhendown** - The consecutive failed checks required to trigger an alert. Values of 1 imply notification instantly. Values of 2 mean pingdom will wait for a second check to fail, i.e. `resolution` minutes, to trigger an alert. For example `sendnotificationwhendown: 2` and `resolution: 1`, will trigger an alert after 1 minute. Further, values of N will trigger an alert after `(N - 1) * resolution` minutes, e.g. `sendnotificationwhendown: 6` and `resolution: 1` will trigger an alert after 5 minutes. Values of 0 are ignored. See note about interaction with `integrationids` below.
+- **sendnotificationwhendown** - The consecutive failed checks required to trigger an alert. Values of 1 imply notification instantly. Values of 2 mean pingdom will wait for a second check to fail, i.e. `resolution` minutes, to trigger an alert. For example `sendnotificationwhendown: 2` and `resolution: 1`, will trigger an alert after 1 minute. Further, values of N will trigger an alert after `(N - 1) * resolution` minutes, e.g. `sendnotificationwhendown: 6` and `resolution: 1` will trigger an alert after 5 minutes. Values of 0 are ignored. See note about interaction with `integrationids` below.
 
-  * **notifyagainevery** - Notify again after n results.  A value of 0 means no additional notifications will be sent.
+- **notifyagainevery** - Notify again after n results. A value of 0 means no additional notifications will be sent.
 
-  * **notifywhenbackup** - Notify when back up.
+- **notifywhenbackup** - Notify when back up.
 
-  * **integrationids** - List of integer integration IDs (defined by webhook URL) that will be triggered by the alerts. The ID can be extracted from the integrations page URL on the pingdom website. See note about interaction with `sendnotificationwhendown` below.
+- **integrationids** - List of integer integration IDs (defined by webhook URL) that will be triggered by the alerts. The ID can be extracted from the integrations page URL on the pingdom website. See note about interaction with `sendnotificationwhendown` below.
 
-  * **userids** - List of integer user IDs that will be notified when the check is down.
+- **userids** - List of integer user IDs that will be notified when the check is down.
 
-  * **teamids** - List of integer team IDs that will be notified when the check is down.
+- **teamids** - List of integer team IDs that will be notified when the check is down.
 
-Note that when using `integrationids`, the `sendnotificationwhendown` value will be ignored when sending webhook notifications.  You may need to contact Pingdom support for more details.  See #52.
+Note that when using `integrationids`, the `sendnotificationwhendown` value will be ignored when sending webhook notifications. You may need to contact Pingdom support for more details. See #52.
 
-#### HTTP specific attributes ####
+#### HTTP specific attributes
 
 For the HTTP checks, you can set these attributes:
 
-  * **url** - Target path on server.
+- **url** - Target path on server.
 
-  * **encryption** - Enable encryption in the HTTP check (aka HTTPS).
+- **encryption** - Enable encryption in the HTTP check (aka HTTPS).
 
-  * **port** - Target port for HTTP checks.
+- **port** - Target port for HTTP checks.
 
-  * **username** - Username for target HTTP authentication.
+- **username** - Username for target HTTP authentication.
 
-  * **password** - Password for target HTTP authentication.
+- **password** - Password for target HTTP authentication.
 
-  * **shouldcontain** - Target site should contain this string.
+- **shouldcontain** - Target site should contain this string.
 
-  * **shouldnotcontain** - Target site should NOT contain this string. Not allowed defined together with `shouldcontain`.
+- **shouldnotcontain** - Target site should NOT contain this string. Not allowed defined together with `shouldcontain`.
 
-  * **postdata** - Data that should be posted to the web page, for example submission data for a sign-up or login form. The data needs to be formatted in the same way as a web browser would send it to the web server.
+- **postdata** - Data that should be posted to the web page, for example submission data for a sign-up or login form. The data needs to be formatted in the same way as a web browser would send it to the web server.
 
-  * **requestheaders** - Custom HTTP headers. It should be a hash with pairs, like `{ "header_name" = "header_content" }`
+- **requestheaders** - Custom HTTP headers. It should be a hash with pairs, like `{ "header_name" = "header_content" }`
 
-  * **tags** - List of tags the check should contain. Should be in the format "tagA,tagB"
+- **tags** - List of tags the check should contain. Should be in the format "tagA,tagB"
 
-  * **probefilters** - Region from which the check should originate. One of NA, EU, APAC, or LATAM. Should be in the format "region:NA"
+- **probefilters** - Region from which the check should originate. One of NA, EU, APAC, or LATAM. Should be in the format "region:NA"
 
-#### TCP specific attributes ####
+#### TCP specific attributes
 
 For the TCP checks, you can set these attributes:
 
-  * **port** - Target port for TCP checks.
+- **port** - Target port for TCP checks.
 
-  * **stringtosend** - (optional) This string will be sent to the port
+- **stringtosend** - (optional) This string will be sent to the port
 
-  * **stringtoexpect** - (optional) This string must be returned by the remote host for the check to pass
+- **stringtoexpect** - (optional) This string must be returned by the remote host for the check to pass
 
 The following attributes are exported:
 
-  * **id** The ID of the Pingdom check
+- **id** The ID of the Pingdom check
 
+### Pingdom Team
 
-### Pingdom Team ###
+- **name** - (Required) The name of the team
 
-  * **name** - (Required) The name of the team
+- **member_ids** - List of integer contact IDs that will be notified when the check is down.
 
-  * **member_ids** - List of integer contact IDs that will be notified when the check is down.
+### Pingdom Contact
 
+- **name**: (Required) Name of the contact
 
-### Pingdom Contact ###
+- **paused**: Whether alerts for this contact should be disabled
 
-  * **name**: (Required) Name of the contact
+- **sms_notification**: Block resource describing an SMS notification
 
-  * **paused**: Whether alerts for this contact should be disabled
+  - **country_code**: The country code, defaults to "1"
 
-  * **sms_notification**: Block resource describing an SMS notification
+  - **number**: The phone number
 
-      * **country_code**: The country code, defaults to "1"
+  - **provider**: Provider for SMS messaging. One of nexmo|bulksms|esendex|cellsynt. 'bulksms' not presently operational
 
-      * **number**: The phone number
+  - **severity**: Severity of this notification. One of HIGH|LOW
 
-      * **provider**: Provider for SMS messaging. One of nexmo|bulksms|esendex|cellsynt. 'bulksms' not presently operational
+- **email_notification**: Block resource describing an Email notification
 
-      * **severity**: Severity of this notification. One of HIGH|LOW
+  - **address**: Email address to notify
 
-  * **email_notification**: Block resource describing an Email notification
+  - **severity**: Severity of this notification. One of HIGH|LOW
 
-      * **address**: Email address to notify
+### Pingdom Maintenance Window
 
-      * **severity**: Severity of this notification. One of HIGH|LOW
+- **description**: (Required) Description for maintenance window
 
-## Develop The Provider ##
+- **from**: (Required) Start time for maintenance window (Unic Epoch)
 
-### Dependencies for building from source ###
+- **to**: (Required) Start time for maintenance window (Unic Epoch)
 
-If you need to build from source, you should have a working Go environment setup.  If not check out the Go [getting started](http://golang.org/doc/install) guide.
+- **recurrence_type**: For recurring maintenance windows
 
-This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) for dependency management.  To fetch all dependencies run `go get` inside this repository.
+- **repeat_every**: Frequency for recurring maintenance windows
 
-### Build ###
+- **effective_to**: End date for recurring maintenance windows
+
+- **uptimeids**: (Required) List of IDs for the Uptime monitors affected by the maintenance window. You can use `[ ]` for an empty list
+
+- **tmsids**: (Required) List of IDs for the Transaction monitors affected by the maintenance window. You can use `[ ]` for an empty list
+
+## Develop The Provider
+
+### Dependencies for building from source
+
+If you need to build from source, you should have a working Go environment setup. If not check out the Go [getting started](http://golang.org/doc/install) guide.
+
+This project uses [Go Modules](https://github.com/golang/go/wiki/Modules) for dependency management. To fetch all dependencies run `go get` inside this repository.
+
+### Build
 
 ```sh
 make build
@@ -275,10 +307,10 @@ make build
 
 The binary will then be available at `_build/terraform-provider-pingdom_VERSION`.
 
-### Install ###
+### Install
 
 ```sh
 make install
 ```
 
-This will place the binary under `$HOME/.terraform.d/plugins/OS_ARCH/terraform-provider-pingdom_VERSION`.  After installing you will need to run `terraform init` in any project using the plugin.
+This will place the binary under `$HOME/.terraform.d/plugins/OS_ARCH/terraform-provider-pingdom_VERSION`. After installing you will need to run `terraform init` in any project using the plugin.

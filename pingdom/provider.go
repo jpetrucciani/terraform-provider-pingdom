@@ -3,12 +3,11 @@ package pingdom
 import (
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/mitchellh/mapstructure"
 )
 
-func Provider() terraform.ResourceProvider {
+func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"api_token": {
@@ -20,10 +19,12 @@ func Provider() terraform.ResourceProvider {
 			"pingdom_check":   resourcePingdomCheck(),
 			"pingdom_team":    resourcePingdomTeam(),
 			"pingdom_contact": resourcePingdomContact(),
+			"pingdom_maintenance_window": resourcePingdomMaintenanceWindow(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"pingdom_contact": dataSourcePingdomContact(),
 			"pingdom_team":    dataSourcePingdomTeam(),
+			// "pingdom_maintenance_window": dataSourcePingdomMaintenanceWindow(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

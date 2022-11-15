@@ -13,7 +13,7 @@
 # limitations under the License.
 
 terraform {
-  required_version = ">= 0.11.0"
+  required_version = ">= 1.3.0"
 }
 
 resource "pingdom_team" "test_one" {
