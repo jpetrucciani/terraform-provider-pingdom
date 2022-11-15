@@ -31,7 +31,7 @@ signs:
       - '--batch'
       - '--local-user'
       # - "{{ .Env.GPG_FINGERPRINT }}" # set this environment variable for your signing key
-      - '--output'
-      - '${signature}'
-      - '--detach-sign'
+      # - '--output'
+      # - '${signature}'
+      # - '--detach-sign'
       - '${artifact}'
